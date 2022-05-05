@@ -1,0 +1,139 @@
+#:import kivy kivy
+#:import SlideTransition kivy.uix.screenmanager.SlideTransition
+
+<MainScreenManager>:
+    canvas.before:
+        Color:
+            rgba: app.theme.background
+        Rectangle:
+            pos: self.pos
+            size: self.size
+
+<MainScreen>:
+    source: app.background_image
+    first_selected: first_select if not first_select.disabled else second_select
+    ScreenLayout:
+        orientation: 'vertical'
+        Header:
+            BoxLayout:
+                orientation: 'horizontal'
+                Widget:
+                    size_hint_x: None
+                    width: app.button_scale
+                Image:
+                    source: 'data/appname.png'
+                InfoLabel:
+            SettingsButton:
+                on_release: app.show_settings()
+        BoxLayout:
+            padding: app.screen_border
+            orientation: 'vertical'
+            WideButton:
+                helptext: ['Resume Game:', '-', 'A previously saved Marathon or Sprint game exists, click this button to continue your game where you left off.  ']
+                id: first_select
+                font_size: app.text_scale * 1.5
+                size_hint_y: None
+                height: app.button_scale * 1.5 if app.pause_data else 0
+                opacity: 1 if app.pause_data else 0
+                disabled: False if app.pause_data else True
+                text: 'Resume Game'
+                on_release: app.resume_game()
+            LayoutSplitter:
+                owner: root
+                WideButton:
+                    helptext: ['Marathon Game:', '-', 'A Marathon game is endless mode.  The goal is to complete as many lines as possible, and to reach the highest score.  Every 10 completed lines, the block fall speed is increased.  A game over is reached when the blocks pile up beyond the top of the screen.  ', 'Completing more lines with one dropped piece will result in higher scores.  ']
+                    id: second_select
+                    font_size: app.text_scale * 1.5
+                    size_hint_y: None
+                    height: app.button_scale * 1.5
+                    text: 'New Marathon Game'
+                    on_release: app.marathon()
+                WideButton:
+                    helptext: ['Sprint Game:', '-', 'A Sprint game is a goal-oriented game.  Before starting, you will select a number of lines that should be completed to win the game.  The goal is to complete these lines with the highest score.  A game over is reached when the blocks pile up beyond the top of the screen.  ', 'Completing more lines with one dropped piece will result in higher scores.  ']
+                    font_size: app.text_scale * 1.5
+                    size_hint_y: None
+                    height: app.button_scale * 1.5
+                    text: 'New Sprint Game'
+                    on_release: app.sprint()
+                WideButton:
+                    helptext: ['Multiplayer Game:', '-', 'Connect to another player compete in a one-on-one matchup.  Game rules are similar to Marathon mode, and the goal is to be the last one to reach the top of the playing field, whoever lasts the longest wins.  ', 'Completing lines will send one-less than your completed lines to your opponent (so four lines completed at once will send three lines).  Added lines will show up as red overlays at the bottom of your field until your next block falls, then your stack will rise.  Added lines cannot directly cause a game over, but they can prevent you from placing a piece!  ', "Keep an eye on the height of your opponent's field with the red line to the right of your play field.  "]
+                    font_size: app.text_scale * 1.5
+                    size_hint_y: None
+                    height: app.button_scale * 1.5
+                    text: 'New Multiplayer Game'
+                    on_release: app.multiplayer()
+                WideButton:
+                    helptext: ['Load Replay:', '-', 'Previously-played games are stored and can be watched from this screen.  Press any key while watching a replay to put the playback in fast-forward mode.  ']
+                    font_size: app.text_scale * 1.5
+                    size_hint_y: None
+                    height: app.button_scale * 1.5
+                    text: 'Load Replay'
+                    on_release: app.replay()
+                WideButton:
+                    font_size: app.text_scale * 1.5
+                    size_hint_y: None
+                    height: app.button_scale * 1.5
+                    text: 'Exit'
+                    on_release: app.stop()
+            LayoutSplitter:
+                owner: root
+                size_hint_y: 1
+                BoxLayout:
+                    orientation: 'vertical'
+                    LeftNormalLabel:
+                        size_hint_y: None
+                        height: app.button_scale * .66
+                        text: "      Marathon High Scores:" if root.scores_a else ""
+                    NormalRecycleView:
+                        id: scoreView
+                        data: root.scores_a
+                        viewclass: 'NormalLabel'
+                        RecycleBoxLayout:
+                            default_size: None, app.button_scale / 2
+                            default_size_hint: 1, None
+                            orientation: 'vertical'
+                            size_hint_y: None
+                            height: self.minimum_height
+                BoxLayout:
+                    orientation: 'vertical'
+                    LeftNormalLabel:
+                        size_hint_y: None
+                        height: app.button_scale * .66
+                        text: "      Sprint High Scores:" if root.scores_b else ""
+                    NormalRecycleView:
+                        id: scoreView
+                        data: root.scores_b
+                        viewclass: 'NormalLabel'
+                        RecycleBoxLayout:
+                            default_size: None, app.button_scale / 2
+                            default_size_hint: 1, None
+                            orientation: 'vertical'
+                            size_hint_y: None
+                            height: self.minimum_height
+
+<TouchControl>:
+
+<TouchDrop@TouchButton>:
+    canvas.before:
+        Color:
+            rgba: 1, 1, 1, .5
+        Rectangle:
+            size: self.size
+            pos: self.pos
+            source: 'data/drop.png'
+    size_hint_y: None
+    height: self.width if app.touch_area else 0
+    opacity: 1 if app.touch_area else 0
+    disabled: False if app.touch_area else True
+
+<TouchArea>:
+    Image:
+        opacity: 0.5 if root.image else 0
+        allow_stretch: True
+        source: root.image
+
+<TouchButton>:
+    Image:
+        opacity: 0.5 if root.image else 0
+        allow_stretch: True
+        source: root.image
