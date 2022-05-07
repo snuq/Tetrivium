@@ -253,7 +253,7 @@ Builder.load_string("""
                         padding: 15, 15
                         valign: 'top'
                         text: 'Stored:'
-                    Button:
+                    TouchButton:
                         opacity: 0
                         pos: self.parent.pos
                         on_press: root.store()

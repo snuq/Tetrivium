@@ -125,11 +125,13 @@ class TouchArea(BoxLayout):
     def on_touch_down(self, touch):
         if self.disabled:
             return
+        game_screen = app.game_screen
+        if game_screen is None:
+            return
+        if game_screen.paused or game_screen.replay or not game_screen.game_running:
+            return
         if self.collide_point(*touch.pos):
             touch.grab(self)
-            game_screen = app.game_screen
-            if game_screen is None:
-                return
             if self.function == 'down':
                 game_screen.move_down()
                 game_screen.move_down_touch()
@@ -161,6 +163,11 @@ class TouchControl(BoxLayout):
     swipe_down_distance = 100
 
     def on_touch_down(self, touch):
+        game_screen = app.game_screen
+        if game_screen is None:
+            return
+        if game_screen.paused or game_screen.replay or not game_screen.game_running:
+            return
         if app.touch_area or self.invisible:
             if self.collide_point(*touch.pos):
                 touch.grab(self)
@@ -240,6 +247,14 @@ class TouchControl(BoxLayout):
 
 class TouchButton(ButtonBehavior, BoxLayout):
     image = StringProperty('')
+
+    def on_touch_down(self, touch):
+        game_screen = app.game_screen
+        if game_screen is None:
+            return
+        if game_screen.paused or game_screen.replay or not game_screen.game_running:
+            return
+        return super().on_touch_down(touch)
 
 
 class Tetrivium(App):
