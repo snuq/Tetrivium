@@ -15,3 +15,7 @@ Uses the UPnPy for port forwarding as a fallback method if it is available and n
 * Multiplayer support through multiple devices, including cross-platform play.
 * Full theme support - make the game look as retro or modern as you want.
 * Use your own music - just load a music folder as a theme.
+
+An alternate 'Retro' theme with 8bit inspired graphics, sound effects and music remixes is included, check the 'themes/Retro' folder for it.
+
+Please be warned that multiplayer may still be buggy, and may not work at all depending on your network setup.
