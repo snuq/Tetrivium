@@ -1,6 +1,7 @@
 import threading
 import socket
 import time
+from kivy.clock import mainthread
 from kivy.logger import Logger
 from kivy.properties import OptionProperty, ObjectProperty, StringProperty, ListProperty, BooleanProperty, NumericProperty, DictProperty
 from kivy.uix.widget import Widget
@@ -23,23 +24,26 @@ def split_at_n(text, splitter, n):
     return splitter.join(groups[:n]), splitter.join(groups[n:])
 
 
-class PortForwarder(Widget):
+class PortForwarder:
     #This class only handles port forwarding
 
-    timeout_time = NumericProperty(10)
-    protocol = StringProperty('TCP')
-    local_port = NumericProperty(1)
-    external_port = NumericProperty(1)
-    local_ip = StringProperty()
-    external_local_ip = StringProperty()
-    description = StringProperty()
-    duration = NumericProperty(0)
+    timeout_time = 10
+    protocol = 'TCP'
+    local_port = 1
+    external_port = 1
+    local_ip = ''
+    external_local_ip = ''
+    description = ''
+    duration = 0
 
     socket = None
     gateway = None
 
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
+    def __init__(self, local_port, external_port, local_ip, description):
+        self.local_port = local_port
+        self.external_port = external_port
+        self.local_ip = local_ip
+        self.description = description
         self.setup_socket()
 
     def xml_to_dict(self, root):
@@ -184,7 +188,7 @@ class PortForwarder(Widget):
                     return service
         return None
 
-    def port_forward(self):
+    def port_forward(self, detect_only=False):
         device_data = self.find_gateway()
         if device_data is None:
             return 'Unable to find internet gateway device'
@@ -214,6 +218,9 @@ class PortForwarder(Widget):
             dprint('Unable to request external ip: '+str(e))
             self.external_local_ip = ''
         
+        if detect_only:
+            #Don't actually forward port. Useful for detecting ip address.
+            return True
         port_forward_xml = self.xml_request(self.xml_content_port_forward(self.local_port, self.external_port, self.protocol, self.local_ip, self.description, self.duration))
         status, result = self.send_request(service_type, 'AddPortMapping', request_url, port_forward_xml)
         if status != 200:
@@ -391,6 +398,21 @@ class Connector(Widget):
                 self.connect_status = 'Canceled Connection'
             self.restart('scanning')
 
+    @mainthread
+    def set_external_local_ip(self, ip):
+        self.external_local_ip = ip
+
+    def init_direct_connection(self):
+        self.thinking = True
+        self.connect_status = 'Setting Up Direct Connection...'
+        self.connect_action = 'Please Wait...'
+        port_forwarder = PortForwarder(local_port=self.port, external_port=self.port, local_ip=self.local_ip, description='Tetrivium Port Forward')
+        port_forwarded = port_forwarder.port_forward(detect_only=True)
+        self.set_external_local_ip(port_forwarder.external_local_ip)
+        self.thinking = False
+        self.connect_status = 'Ready To Connect'
+        self.connect_action = 'Connect...'
+
     def init_port_forward(self):
         #Completes the port forwarding process by using the PortForwarder class
 
@@ -400,7 +422,7 @@ class Connector(Widget):
         dprint('Start port forward detection')
         port_forwarder = PortForwarder(local_port=self.port, external_port=self.port, local_ip=self.local_ip, description='Tetrivium Port Forward')
         port_forwarded = port_forwarder.port_forward()
-        self.external_local_ip = port_forwarder.external_local_ip
+        self.set_external_local_ip(port_forwarder.external_local_ip)
         if port_forwarded is not True:
             dprint('Port forward failed: '+port_forwarded+', trying alternate method')
             port_forwarded = port_forwarder.port_forward_upnpy()
@@ -455,6 +477,8 @@ class Connector(Widget):
                 if not set_forwarding:
                     self.cancel_thread = True
                     return
+            if self.connect_mode == 'direct':
+                self.init_direct_connection()
             if self.connect_mode == 'local':
                 #setup transmitter
                 self.broadcast_address = self.local_ip.rsplit('.', 1)[0] + '.255'
