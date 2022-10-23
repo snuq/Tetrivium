@@ -4,6 +4,8 @@ Tetrivium is a game inspired by a specific falling-block puzzle game developed b
 
 Programmed in Python, built on the Kivy framework.
 
+Uses the UPnPy for port forwarding as a fallback method if it is available and necessary.
+
 #### Some features:
 * Cross-platform - will run on anything that Kivy runs on: Windows/Linux/Mac/Android/IOS/etc.
 * Clean graphics, animations and interface designed to work on a wide variety of devices and screens.
