@@ -178,8 +178,50 @@ Builder.load_string("""
                                         BoxLayout:
                                             padding: [app.display_border, app.display_border, app.display_border, app.display_border]
                                             orientation: 'vertical'
-                                            NormalLabel:
-                                                text: 'Not implemented yet'
+                                            BoxLayout:
+                                                orientation: 'horizontal'
+                                                size_hint_y: None
+                                                height: app.button_scale
+                                                ShortLabel:
+                                                    text: "Your Address: "
+                                                NormalInput:
+                                                    helptext: ['Your Address:', '-', 'This is your IP address that other apps should connect to.  Please note that this address may not be detected correctly on all devices, please double-check this with a website that shows your external IP address if someone is not able to connect to you.  This field can be copied, but not edited.  ']
+                                                    readonly: True
+                                                    text: app.external_local_ip
+                                            BoxLayout:
+                                                orientation: 'horizontal'
+                                                size_hint_y: None
+                                                height: app.button_scale
+                                                ShortLabel:
+                                                    size_hint_y: None
+                                                    height: app.button_scale
+                                                    text: "Connect To: "
+                                                IPInput:
+                                                    helptext: ['Connect To:', '-', "The IP address of the other app to connect to.  This should be the same value shown in the 'Your Address' field of the other app.  "]
+                                                    text: app.remote_ip
+                                                    on_text: root.set_remote_ip(self.text)
+                                                    disabled: app.connecting or app.connected
+                                                ShortLabel:
+                                                    size_hint_y: None
+                                                    height: app.button_scale
+                                                    text: ":"
+                                                IntegerInput:
+                                                    helptext: ['Connect To:', '-', 'The port number to connect to.  This must be set to the same number for both instances of the app, and this port must not be in use by another program or computer on your network.  ']
+                                                    size_hint_x: 0.5
+                                                    text: str(app.port)
+                                                    on_focus: root.set_port(self, self.text)
+                                                    disabled: app.connecting or app.connected
+                                            BoxLayout:
+                                                orientation: 'horizontal'
+                                                size_hint_y: None
+                                                height: app.button_scale
+                                                LeftNormalLabel:
+                                                    text: app.connect_status
+                                                WideButton:
+                                                    id: first_select
+                                                    text: app.connect_action
+                                                    disabled: True if app.mp_connection is None or app.mp_thinking else False
+                                                    on_release: app.mp_connection.connect_action_call()
                                     Screen:
                                         name: 'bluetooth'
                                         BoxLayout:
@@ -446,18 +488,18 @@ class MultiplayerScreen(GameStartScreen):
     def on_enter(self):
         app = App.get_running_app()
         self.multiplayer_mode_menu = NormalDropDown()
-        menu_button = MenuButton(text='Local')
+        menu_button = MenuButton(text='Local Network')
         menu_button.bind(on_release=lambda x: self.set_multiplayer_mode('local'))
         self.multiplayer_mode_menu.add_widget(menu_button)
-        menu_button = MenuButton(text='Port Forwarding')
+        menu_button = MenuButton(text='Port Forward Remote')
         menu_button.bind(on_release=lambda x: self.set_multiplayer_mode('port_forward'))
         self.multiplayer_mode_menu.add_widget(menu_button)
-        menu_button = MenuButton(text='Direct Connection')
+        menu_button = MenuButton(text='Direct Remote')
         menu_button.bind(on_release=lambda x: self.set_multiplayer_mode('direct'))
         self.multiplayer_mode_menu.add_widget(menu_button)
-        menu_button = MenuButton(text='Bluetooth Connection')
-        menu_button.bind(on_release=lambda x: self.set_multiplayer_mode('bluetooth'))
-        self.multiplayer_mode_menu.add_widget(menu_button)
+        #menu_button = MenuButton(text='Bluetooth Connection')
+        #menu_button.bind(on_release=lambda x: self.set_multiplayer_mode('bluetooth'))
+        #self.multiplayer_mode_menu.add_widget(menu_button)
 
         if not app.connected:
             app.multiplayer_text = []

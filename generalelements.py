@@ -849,7 +849,10 @@ class NormalPopup(Popup):
 
 
 class SpecialSlider(Slider):
+    helptext = ListProperty()
     selectable_item = BooleanProperty(True)
+    long_press_time = NumericProperty(1)
+    long_press_schedule = None
 
     def decrease(self):
         new_value = self.value - .1
@@ -865,12 +868,30 @@ class SpecialSlider(Slider):
         else:
             self.value = new_value
 
+    def on_touch_up(self, touch):
+        if self.long_press_schedule:
+            self.long_press_schedule.cancel()
+            self.long_press_schedule = None
+        return super().on_touch_up(touch)
+
     def on_touch_down(self, touch):
-        if self.collide_point(*touch.pos) and touch.is_double_tap:
-            #self.reset_value()
-            Clock.schedule_once(self.reset_value, 0.15)  #need to delay this more than the scrollview scroll_timeout so it actually works
-            return
-        super(SpecialSlider, self).on_touch_down(touch)
+        if self.collide_point(*touch.pos):
+            if touch.is_double_tap:
+                #self.reset_value()
+                Clock.schedule_once(self.reset_value, 0.15)  #need to delay this more than the scrollview scroll_timeout so it actually works
+                return
+            if hasattr(touch, 'button') and touch.button == 'right':
+                if self.helptext:
+                    self.long_press(touch)
+                return
+            if self.helptext:
+                self.long_press_schedule = Clock.schedule_once(lambda x: self.long_press(touch), self.long_press_time)
+        return super().on_touch_down(touch)
+
+    def long_press(self, touch):
+        if self.collide_point(*touch.pos):
+            app = App.get_running_app()
+            app.help(self.helptext)
 
     def reset_value(self, *_):
         pass

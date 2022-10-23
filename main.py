@@ -1,9 +1,9 @@
 """
 todo:
-    add help dialog to sliders
-    multiplayer improvements:
-        seems to freeze on unpause?
-        compute a suggested handicap after each game (based on number of lines sent/received and block height at end)
+    multiplayer may freeze on unpause
+    should look into 'un-forwarding' a port when a 'ConflictInMappingEntry' error happens
+    sometimes detected external ip address might be wrong for some reason?
+    add option for bluetooth networking if possible - https://gist.github.com/tito/7432757
 """
 import time
 startup_time = time.time()

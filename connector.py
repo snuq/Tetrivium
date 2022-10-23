@@ -1,12 +1,3 @@
-"""
-Notes/todo:
-    currently restarting the main connector thread, or changing modes can be pretty messy... need to unify this better
-    should look into 'un-forwarding' a port when a 'ConflictInMappingEntry' error happens
-    add direct connection, non port-forwarded option (with ability to set port)
-    sometimes detected external ip address might be wrong for some reason?
-    add option for bluetooth networking - https://gist.github.com/tito/7432757
-"""
-
 import threading
 import socket
 import time
