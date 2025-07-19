@@ -11,10 +11,43 @@ from globals import *
 from kivy.config import Config
 Config.set('input', 'mouse', 'mouse,disable_multitouch')
 Config.set('graphics', 'maxfps', str(fps * 2))
+FileBrowser = None
+from configparser import ConfigParser
 import random
 from datetime import datetime
 import os
 app_directory = os.path.dirname(os.path.realpath(__file__))
+if platform == 'win':
+    import ctypes
+    ctypes.windll.shcore.SetProcessDpiAwareness(1)
+if platform == 'android':
+    from plyer import vibrator
+else:
+    vibrator = None
+#Initialize audio system
+if os.path.exists(os.path.join(app_directory, 'default_audio')):
+    force_audio = False
+else:
+    force_audio = True
+if force_audio:
+    if platform == 'android':
+        from audio_android import SoundAndroid as SoundFX
+        from audio_android import SoundAndroid as SoundMusic
+    else:
+        try:
+            from kivy.core.audio.audio_sdl2 import SoundSDL2 as SoundFX
+            from kivy.core.audio.audio_sdl2 import MusicSDL2 as SoundMusic
+        except:
+            from kivy.core.audio_output.audio_sdl3 import SoundSDL3 as SoundFX
+            from kivy.core.audio_output.audio_sdl3 import MusicSDL3 as SoundMusic
+        SoundFX(source='')  # this needs to be run before importing "Window", or a freeze can haappen for some reason
+else:
+    try:
+        from kivy.core.audio import SoundLoader
+    except:
+        from kivy.core.audio_output import SoundLoader
+    SoundLoader.load('')
+#Kivy imports
 from kivy.logger import Logger
 from kivy.core.window import Window
 from kivy.base import EventLoop
@@ -29,30 +62,11 @@ from kivy.uix.behaviors import ButtonBehavior
 from kivy.uix.recycleview import RecycleView
 from kivy.resources import resource_find
 from generalelements import *
-from globals import emotions_colors
 from smoothsetting import SmoothSetting
-from configparser import ConfigParser
 
 #Multiplayer screen imports, delay until needed
 Connector = None
 socket = None
-
-FileBrowser = None
-if platform == 'win':
-    import ctypes
-    ctypes.windll.shcore.SetProcessDpiAwareness(1)
-if platform == 'android':
-    from plyer import vibrator
-    from audio_android import SoundAndroid as SoundFX
-    from audio_android import SoundAndroid as SoundMusic
-else:
-    vibrator = None
-    try:
-        from kivy.core.audio_output.audio_sdl3 import SoundSDL3 as SoundFX
-        from kivy.core.audio_output.audio_sdl3 import MusicSDL3 as SoundMusic
-    except:
-        from kivy.core.audio.audio_sdl2 import SoundSDL2 as SoundFX
-        from kivy.core.audio.audio_sdl2 import MusicSDL2 as SoundMusic
 
 
 class Theme(Widget):
@@ -1040,9 +1054,11 @@ class Tetrivium(App):
         sound_filename = os.path.join(theme_folder, sound_name+'.wav')
         sound = None
         if resource_find(sound_filename):
-            #sound = SoundFXLoader.load(sound_filename)
-            sound = SoundFX(source=resource_find(sound_filename))
-            sound.load()
+            if force_audio:
+                sound = SoundFX(source=resource_find(sound_filename))
+                sound.load()
+            else:
+                sound = SoundLoader.load(sound_filename)
         return sound
 
     def on_sound_effects(self, *_):
@@ -1542,8 +1558,11 @@ class Tetrivium(App):
                         self.music_loop = loop_point
                         if music_ext == '.ogg':
                             pass
-                        self.music = SoundMusic(source=music_filename)
-                        self.music.load()
+                        if force_audio:
+                            self.music = SoundMusic(source=music_filename)
+                            self.music.load()
+                        else:
+                            self.music = SoundLoader.load(music_filename)
 
     def pause_music(self):
         self.cancel_loop()

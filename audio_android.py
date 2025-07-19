@@ -6,7 +6,10 @@ Works Android only, will not return anything on other OS's
 __all__ = ('SoundAndroid', )
 
 import os
-from kivy.core.audio import Sound, SoundLoader
+try:
+    from kivy.core.audio import Sound, SoundLoader
+except:
+    from kivy.core.audio_output import Sound, SoundLoader
 
 
 class SoundAndroid(Sound):
