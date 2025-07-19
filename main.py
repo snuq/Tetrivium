@@ -47,8 +47,12 @@ if platform == 'android':
     from audio_android import SoundAndroid as SoundMusic
 else:
     vibrator = None
-    from kivy.core.audio.audio_sdl2 import SoundSDL2 as SoundFX
-    from kivy.core.audio.audio_sdl2 import MusicSDL2 as SoundMusic
+    try:
+        from kivy.core.audio_output.audio_sdl3 import SoundSDL3 as SoundFX
+        from kivy.core.audio_output.audio_sdl3 import MusicSDL3 as SoundMusic
+    except:
+        from kivy.core.audio.audio_sdl2 import SoundSDL2 as SoundFX
+        from kivy.core.audio.audio_sdl2 import MusicSDL2 as SoundMusic
 
 
 class Theme(Widget):
